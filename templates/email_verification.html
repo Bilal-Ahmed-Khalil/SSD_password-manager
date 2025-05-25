@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1f1f1f;
+            font-family: 'Segoe UI', sans-serif;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .verify-container {
+            background: #111;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px #00ffbf1c;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .verify-container h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #f0f0f0;
+        }
+
+        .verify-container p {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .verify-container input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #1e1e1e;
+            border: none;
+            border-radius: 6px;
+            color: #eee;
+            font-size: 14px;
+        }
+
+        .verify-container input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, #00ffbf, #00ffc8);
+            border: none;
+            border-radius: 6px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .verify-container input[type="submit"]:hover {
+            background: linear-gradient(to right, #00ffc8, #00ffbf);
+        }
+
+        .message {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="verify-container">
+    <h2>Verify Your Email</h2>
+    <p>A 6-digit code has been sent to your email address.</p>
+
+    {% if messages %}
+        <div class="message">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'confirm' %}">
+        {% csrf_token %}
+        <input type="text" name="code" placeholder="Enter 6-digit code" required>
+        <input type="hidden" name="user" value="{{ user.username }}">
+        <input type="submit" name="confirm" value="Confirm">
+    </form>
+</div>
+
+</body>
+</html>

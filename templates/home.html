@@ -1,0 +1,254 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Password Manager</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c, #1a1a1a);
+            color: white;
+        }
+        header {
+            background-color: #0a0a0a;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        nav ul li a,
+        nav ul li button {
+            color: #00ffd5;
+            font-weight: bold;
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .messages {
+            text-align: center;
+            margin: 15px 0;
+            color: #f66;
+        }
+        .login-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+        }
+        .modal-form {
+            background-color: #111;
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.1);
+        }
+        .modal-form h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .modal-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background: #222;
+            color: white;
+        }
+        .modal-form input[type="submit"] {
+            background-color: #00ffd5;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 40px;
+        }
+        .card {
+            background-color: #111;
+            padding: 20px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
+        }
+        .card img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        .card .name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            background-color: #222;
+            border: none;
+            color: white;
+            border-radius: 5px 0 0 5px;
+        }
+        .copy-btn {
+            background: #00ffd5;
+            color: black;
+            padding: 10px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+        .delete-form {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: red;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .update-btn {
+            display: inline-block;
+            margin-top: 12px;
+            text-decoration: none;
+            background: #00ffd5;
+            color: black;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #0a0a0a;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand"><i class="fa-solid fa-lock"></i> Password Manager</div>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            {% if request.user.is_authenticated %}
+                <li><a href="{% url 'add_password' %}">Add</a></li>
+                <li>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="logout">Logout</button>
+                    </form>
+                </li>
+            {% else %}
+                <li><a href="{% url 'signup' %}">SignUp</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>
+
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if not request.user.is_authenticated %}
+<section class="login-section">
+    <form method="POST" class="modal-form">
+        {% csrf_token %}
+        <h2>Welcome Back</h2>
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="submit" name="login-form" value="Login">
+        <p style="margin-top: 10px;">Don't have an account? <a href="{% url 'signup' %}" style="color:#00ffd5;">Sign Up</a></p>
+    </form>
+</section>
+{% endif %}
+
+{% if request.user.is_authenticated %}
+<div class="container">
+    {% for password in passwords %}
+    <div class="card">
+        <form method="POST" class="delete-form">
+            {% csrf_token %}
+            <input type="hidden" name="password-id" value="{{ password.id }}">
+            <button type="submit" name="delete" class="delete-btn" title="Delete">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </form>
+
+        
+
+        <div class="name">{{ password.name }}</div>
+
+        <div class="input-group">
+            <input type="email" value="{{ password.email }}" readonly>
+            <span class="copy-btn" onclick="copyToClipboard(this)"><i class="fa-solid fa-copy"></i></span>
+        </div>
+
+        <div class="input-group">
+            <input type="password" value="{{ password.password }}" readonly>
+            <span class="copy-btn" onclick="copyToClipboard(this)"><i class="fa-solid fa-copy"></i></span>
+            <span class="copy-btn" onclick="togglePassword(this)"><i class="fa-solid fa-eye"></i></span>
+        </div>
+
+        <a href="{% url 'update_password' password.id %}" class="update-btn"><i class="fa-solid fa-pen-to-square"></i> Update</a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<footer>
+    <p>&copy; 2025 Password Manager</p>
+</footer>
+
+<script>
+function copyToClipboard(icon) {
+    const input = icon.parentElement.querySelector('input');
+    navigator.clipboard.writeText(input.value).then(() => {
+        icon.style.color = "#0f0";
+        setTimeout(() => { icon.style.color = ""; }, 800);
+    });
+}
+function togglePassword(icon) {
+    const input = icon.parentElement.querySelector('input');
+    if (input.type === "password") {
+        input.type = "text";
+        icon.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+        input.type = "password";
+        icon.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
+}
+</script>
+
+</body>
+</html>
